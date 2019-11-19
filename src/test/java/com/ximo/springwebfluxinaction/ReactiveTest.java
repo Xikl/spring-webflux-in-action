@@ -198,4 +198,65 @@ class ReactiveTest {
         stringFlux.log().subscribe();
 
     }
+
+    /**
+     * 23:36:11.278 [main] DEBUG reactor.util.Loggers$LoggerFactory - Using Slf4j logging framework
+     * 23:36:11.325 [main] INFO reactor.Flux.FirstEmitting.1 - onSubscribe(FluxFirstEmitting.RaceCoordinator)
+     * 23:36:11.327 [main] INFO reactor.Flux.FirstEmitting.1 - request(unbounded)
+     * 23:36:11.836 [parallel-1] INFO reactor.Flux.FirstEmitting.1 - onNext(a)
+     * 23:36:12.337 [parallel-4] INFO reactor.Flux.FirstEmitting.1 - onNext(c)
+     * 23:36:12.838 [parallel-5] INFO reactor.Flux.FirstEmitting.1 - onNext(e)
+     * 23:36:12.838 [parallel-5] INFO reactor.Flux.FirstEmitting.1 - onComplete()
+     *
+     * 只取第一个source
+     *
+     * @throws InterruptedException
+     */
+    @Test
+    void testFluxFirst() throws InterruptedException {
+        final Flux<String> fistFlux = Flux.just("a", "c", "e")
+                .delayElements(Duration.ofMillis(500));
+
+        final Flux<String> secondFlux = Flux.just("b", "d")
+                .delaySubscription(Duration.ofMillis(250))
+                .delayElements(Duration.ofMillis(500));
+
+        // 只会有第一个的数据
+        Flux.first(fistFlux, secondFlux)
+                .log()
+                .subscribe();
+
+        TimeUnit.SECONDS.sleep(5);
+    }
+
+    @Test
+    void testFluxSkip() throws InterruptedException {
+        Flux.range(0, 10)
+                .skip(3)
+                .log()
+                .subscribe();
+
+        Flux.range(0, 10)
+                .delayElements(Duration.ofMillis(500))
+                .skip(Duration.ofSeconds(2))
+                .log()
+                .subscribe();
+
+        TimeUnit.SECONDS.sleep(5);
+    }
+
+    @Test
+    void testFluxTake() throws InterruptedException {
+        Flux.range(0, 10)
+                .take(5)
+                .log()
+                .subscribe();
+
+        Flux.range(0, 10)
+                .delayElements(Duration.ofMillis(250))
+                .take(Duration.ofSeconds(2))
+                .log()
+                .subscribe();
+        TimeUnit.SECONDS.sleep(5);
+    }
 }
