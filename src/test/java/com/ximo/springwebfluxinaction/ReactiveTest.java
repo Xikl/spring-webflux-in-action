@@ -286,6 +286,7 @@ class ReactiveTest {
     void tetFluxBufferAndFlatMap() {
         Flux.just("apple", "orange", "banana", "kiwi", "strawberry")
                 .buffer(3)
+                .log()
                 .flatMap(list -> Flux.fromIterable(list)
                         .map(String::toUpperCase)
                         .subscribeOn(Schedulers.parallel())
