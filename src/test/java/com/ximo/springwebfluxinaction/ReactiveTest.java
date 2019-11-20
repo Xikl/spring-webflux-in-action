@@ -8,6 +8,8 @@ import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -258,5 +260,25 @@ class ReactiveTest {
                 .log()
                 .subscribe();
         TimeUnit.SECONDS.sleep(5);
+    }
+
+    /**
+     * [apple, orange, banana][kiwi, strawberry]
+     */
+    @Test
+    void testBuffer() {
+        Flux<String> fruitFlux = Flux.just(
+                "apple", "orange", "banana", "kiwi", "strawberry");
+        Flux<List<String>> bufferedFlux = fruitFlux.buffer(3);
+
+        StepVerifier
+                .create(bufferedFlux)
+                .expectNext(Arrays.asList("apple", "orange", "banana"))
+                .expectNext(Arrays.asList("kiwi", "strawberry"))
+                .verifyComplete();
+
+        bufferedFlux.log().subscribe();
+        bufferedFlux.subscribe(System.out::print);
+
     }
 }
