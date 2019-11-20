@@ -283,6 +283,19 @@ class ReactiveTest {
     }
 
     @Test
+    void tetFluxBufferAndFlatMap() {
+        Flux.just("apple", "orange", "banana", "kiwi", "strawberry")
+                .buffer(3)
+                .flatMap(list -> Flux.fromIterable(list)
+                        .map(String::toUpperCase)
+                        .subscribeOn(Schedulers.parallel())
+                        .log()
+                ).subscribe();
+
+
+    }
+
+    @Test
     void testFluxFilter() {
         Flux.range(0, 10)
                 .filter(data -> data % 2 == 0)
