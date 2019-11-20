@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 import reactor.util.function.Tuple2;
 
@@ -279,6 +280,40 @@ class ReactiveTest {
 
         bufferedFlux.log().subscribe();
         bufferedFlux.subscribe(System.out::print);
+    }
 
+    @Test
+    void testFluxFilter() {
+        Flux.range(0, 10)
+                .filter(data -> data % 2 == 0)
+                .log()
+                .subscribe();
+    }
+
+    @Test
+    void testFluxDistinct() {
+        Flux.just("22", "333", "22", "44")
+                .distinct()
+                .log()
+                .subscribe();
+    }
+
+    @Test
+    void testFluxMap() {
+        Flux.range(0, 10)
+                .map(data -> data * data)
+                .log()
+                .subscribe();
+    }
+
+    @Test
+    void testFluxFlatMap() {
+        Flux.just("aaaa,aaa", "bbbb,bbb", "cccc,ccc")
+                .flatMap(data -> {
+                    String[] inputArray = data.split(",");
+                    return Flux.fromArray(inputArray);
+                }).log()
+//                .subscribeOn(Schedulers.elastic())
+                .subscribe();
     }
 }
