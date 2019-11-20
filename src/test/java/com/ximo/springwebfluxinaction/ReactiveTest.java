@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -45,6 +46,9 @@ class ReactiveTest {
                 .map(data -> String.format("Hello %s!", data))
                 .ifPresent(System.out::println);
 
+        // CompletableFuture
+        CompletableFuture.supplyAsync(() -> 2)
+                .whenComplete((data, error) -> log.info("data: {}", data, error));
     }
 
     @Test
@@ -282,6 +286,27 @@ class ReactiveTest {
         bufferedFlux.subscribe(System.out::print);
     }
 
+    /**
+     * 18:59:18.753 [main] DEBUG reactor.util.Loggers$LoggerFactory - Using Slf4j logging framework
+     * 18:59:18.769 [main] INFO reactor.Flux.Buffer.1 - onSubscribe(FluxBuffer.BufferExactSubscriber)
+     * 18:59:18.772 [main] INFO reactor.Flux.Buffer.1 - request(256)
+     * 18:59:18.773 [main] INFO reactor.Flux.Buffer.1 - onNext([apple, orange, banana])
+     * 18:59:18.784 [main] INFO reactor.Flux.SubscribeOn.2 - onSubscribe(FluxSubscribeOn.SubscribeOnSubscriber)
+     * 18:59:18.784 [main] INFO reactor.Flux.SubscribeOn.2 - request(32)
+     * 18:59:18.787 [main] INFO reactor.Flux.Buffer.1 - onNext([kiwi, strawberry])
+     * 18:59:18.787 [main] INFO reactor.Flux.SubscribeOn.3 - onSubscribe(FluxSubscribeOn.SubscribeOnSubscriber)
+     * 18:59:18.787 [main] INFO reactor.Flux.SubscribeOn.3 - request(32)
+     * 18:59:18.787 [main] INFO reactor.Flux.Buffer.1 - onComplete()
+     * 18:59:18.792 [parallel-2] INFO reactor.Flux.SubscribeOn.3 - onNext(KIWI)
+     * 18:59:18.793 [parallel-2] INFO reactor.Flux.SubscribeOn.3 - onNext(STRAWBERRY)
+     * 18:59:18.793 [parallel-2] INFO reactor.Flux.SubscribeOn.3 - onComplete()
+     * 18:59:18.792 [parallel-1] INFO reactor.Flux.SubscribeOn.2 - onNext(APPLE)
+     * 18:59:18.794 [parallel-1] INFO reactor.Flux.SubscribeOn.2 - onNext(ORANGE)
+     * 18:59:18.795 [parallel-1] INFO reactor.Flux.SubscribeOn.2 - onNext(BANANA)
+     * 18:59:18.795 [parallel-1] INFO reactor.Flux.SubscribeOn.2 - onComplete()
+     * 前三个 和 后两个 都在同时执行
+     *
+     */
     @Test
     void tetFluxBufferAndFlatMap() {
         Flux.just("apple", "orange", "banana", "kiwi", "strawberry")
@@ -329,5 +354,25 @@ class ReactiveTest {
                 }).log()
 //                .subscribeOn(Schedulers.elastic())
                 .subscribe();
+    }
+
+    @Test
+    void testFluxCollectList() {
+        Mono<List<Integer>> listMono = Flux.range(0, 9)
+                .collectList();
+
+        // emitted
+        List<Integer> block = listMono.log().block();
+    }
+
+    @Test
+    void testFluxCollectMap() {
+
+        Flux<String> animalFlux = Flux.just(
+                "aardvark", "elephant", "koala", "eagle", "kangaroo");
+
+        // 就等于identity 不写就是它自己
+        animalFlux.collectMap(data -> data.charAt(0));
+
     }
 }
