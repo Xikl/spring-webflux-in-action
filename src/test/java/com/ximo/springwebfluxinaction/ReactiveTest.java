@@ -375,4 +375,22 @@ class ReactiveTest {
         animalFlux.collectMap(data -> data.charAt(0));
 
     }
+
+    @Test
+    void testFluxAll() {
+        final Mono<Boolean> all = Flux.range(0, 10)
+                .all(data -> data < 11);
+
+        all.subscribe(System.out::println);
+    }
+
+    @Test
+    void testFluxAny() {
+        // 短路操作
+        Flux.range(0, 10)
+                .any(data -> data % 2 == 0)
+                .log()
+                .subscribe();
+
+    }
 }
