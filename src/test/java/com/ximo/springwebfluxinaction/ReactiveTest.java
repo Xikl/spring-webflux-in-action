@@ -393,4 +393,37 @@ class ReactiveTest {
                 .subscribe();
 
     }
+
+    @Test
+    void testConcatMap() {
+        Flux.just("a,a", "b,b", "c,c", "d,d,d")
+                .concatMap(str -> {
+                    final String[] result = str.split(",");
+                    final Stream<String> resultStream = Arrays.stream(result);
+                    return Flux.fromStream(resultStream);
+                })
+                .log()
+                .subscribe();
+
+        Flux.just("a,a", "b,b", "c,c", "d,d,d")
+                .flatMap(str -> {
+                    log.info("str: {}", str);
+                    final String[] result = str.split(",");
+                    final Stream<String> resultStream = Arrays.stream(result);
+                    return Flux.fromStream(resultStream);
+                }).log()
+                .subscribe();
+
+    }
+
+    @Test
+    void testFluxNext() {
+        Flux.just("a", "b", "c")
+                // 取第一个
+                .next()
+                .log()
+                .subscribe();
+
+
+    }
 }
